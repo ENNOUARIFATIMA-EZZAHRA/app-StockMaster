@@ -8,13 +8,14 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-@WebServlet("/ProduitsServlet")
+@WebServlet("/")
 public class ProduitsServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private ProduitsDao produitsDao;
@@ -30,21 +31,27 @@ public class ProduitsServlet extends HttpServlet {
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String action = request.getParameter("action");
+    	String action = request.getServletPath();
 
         try {
             switch (action) {
-                case "insert":
+                case "/new":
+                showNewForm(request, response);
+                break;
+                case "/insert":
                     insertProduits(request, response);
                     break;
-                case "update":
+                case "/update":
                     updateProduits(request, response);
                     break;
-                case "delete":
+                case "/delete":
                     deleteProduits(request, response);
                     break;
-                case "edit":
+                case "/edit":
                     showEditForm(request, response);
+                    break;
+                case "/list":
+                    listProduits(request, response);
                     break;
                 default:
                     listProduits(request, response);
@@ -61,27 +68,69 @@ public class ProduitsServlet extends HttpServlet {
         request.setAttribute("listProduits", listProduits);
         request.getRequestDispatcher("produits-list.jsp").forward(request, response);
     }
+    private void showNewForm(HttpServletRequest request, HttpServletResponse response)
+    	    throws ServletException, IOException {
+    	        RequestDispatcher dispatcher = request.getRequestDispatcher("produits-form.jsp");
+    	        dispatcher.forward(request, response);
+    	    }
 
     private void showEditForm(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         int id = Integer.parseInt(request.getParameter("id"));
         Produits existingProduits = produitsDao.selectProduits(id);
         request.setAttribute("Produits", existingProduits);
-        request.getRequestDispatcher("edit-produits.jsp").forward(request, response);
+        request.getRequestDispatcher("produits-form.jsp").forward(request, response);
     }
 
     private void insertProduits(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, IOException {
-        String nom = request.getParameter("nom");
-        String description = request.getParameter("description");
-        int quantite = Integer.parseInt(request.getParameter("quantite"));
-        int prix = Integer.parseInt(request.getParameter("prix"));
-        String categorie = request.getParameter("categorie");
-
-        Produits newProduits = new Produits(nom, description, quantite, prix, categorie);
-        produitsDao.insertProduits(newProduits);
-        response.sendRedirect("ProduitsServlet");
+	String nom = request.getParameter("nom");
+    String description = request.getParameter("description");
+    String quantiteStr = request.getParameter("quantite");
+    String prixStr = request.getParameter("prix");
+    String categorie = request.getParameter("categorie");
+    
+    if (nom == null || nom.trim().isEmpty()) {
+        response.getWriter().write(" the nom of the product is invalide !");
+        return;
     }
+    if (description == null || description.trim().isEmpty()) {
+        response.getWriter().write(" the description of the product is  invalide !");
+        return;
+    }
+    if (categorie == null || categorie.trim().isEmpty()) {
+        response.getWriter().write("the category of the product is invalide !");
+        return;
+    }
+
+    int quantite = 0;
+    int prix = 0;
+
+    try {
+        if (quantiteStr != null && !quantiteStr.trim().isEmpty()) {
+            quantite = Integer.parseInt(quantiteStr);
+        } else {
+            response.getWriter().write("the Quantite is invalid !");
+            return;
+        }
+
+        if (prixStr != null && !prixStr.trim().isEmpty()) {
+            prix = Integer.parseInt(prixStr);
+        } else {
+            response.getWriter().write("the price is invalid !");
+            return;
+        }
+    } catch (NumberFormatException e) {
+        response.getWriter().write("quantite or price is invalid ! ");
+        return;
+    }
+
+    Produits newProduits = new Produits(nom, description, quantite, prix, categorie);
+    produitsDao.insertProduits(newProduits);
+
+    response.getWriter().write("the product added with succesful!");
+}
+    
 
     private void updateProduits(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, IOException {

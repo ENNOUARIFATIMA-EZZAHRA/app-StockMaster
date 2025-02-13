@@ -25,28 +25,6 @@
             <div class="container mx-auto w-1/2">
                 <div class="bg-white shadow-md rounded-lg p-6">
                     <div class="mb-4">
-                    
-                    
-                    <c:if test="${Produits != null}">
-                            <form action="update" method="post">
-                        </c:if>
-                        <c:if test="${Produits == null}">
-                            <form action="insert" method="post">
-                        </c:if>
-
-                        <caption>
-                            <h2>
-                                <c:if test="${produits != null}">
-                                    Edit Product
-                                </c:if>
-                                <c:if test="${produits == null}">
-                                    Add New Product
-                                </c:if>
-                            </h2>
-                        </caption>
-                        
-                        
-                        
                         <c:if test="${Produits != null}">
                             <form action="update" method="post">
                         </c:if>
